@@ -10,9 +10,10 @@ export default function Create() {
   const [ethereum, setEthereum] = useState(undefined);
   const [connectedAccount, setConnectedAccount] = useState(undefined);
 
-  const [keyboardKind, setKeyboardKind] = useState(0)
-  const [isPBT, setIsPBT] = useState(false)
-  const [filter, setFilter] = useState('')
+  const [keyboardKind, setKeyboardKind] = useState(0);
+  const [isPBT, setIsPBT] = useState(false);
+  const [filter, setFilter] = useState('');
+  const [mining, setMining] = useState(false);
 
   const contractAddress = '0xd2103Df8D40DE0fa16F0EFD3e1fb6c73dFc7E230';
   const contractABI = ABI.abi;
@@ -57,17 +58,23 @@ export default function Create() {
       return;
     }
 
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
+    setMining(true);
 
-    const createTxn = await keyboardsContract.create(keyboardKind, isPBT, filter)
-    console.log('Create transaction started...', createTxn.hash)
+    try {
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
 
-    await createTxn.wait();
-    console.log('Created keyboard!', createTxn.hash);
+      const createTxn = await keyboardsContract.create(keyboardKind, isPBT, filter)
+      console.log('Create transaction started...', createTxn.hash)
 
-    Router.push('/');
+      await createTxn.wait();
+      console.log('Created keyboard!', createTxn.hash);
+
+      Router.push('/');
+    } finally {
+      setMining(false);
+    }
   }
 
   if (!ethereum) {
@@ -135,10 +142,15 @@ export default function Create() {
           </select>
         </div>
 
-        <PrimaryButton type="submit" onClick={submitCreate}>
-          Create Keyboard!
+        <PrimaryButton type="submit" disabled={mining} onClick={submitCreate}>
+          {mining ? "Creating..." : "Create Keyboard"}
         </PrimaryButton>
       </form>
+
+      <div>
+        <h2 className="block text-lg font-medium text-gray-700">Preview</h2>
+        <Keyboard kind={keyboardKind} isPBT={isPBT} filter={filter} />
+      </div>
     </div>
   )
 }

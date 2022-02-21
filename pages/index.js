@@ -7,8 +7,8 @@ import ABI from "../utils/Keyboards.json"
 export default function Home() {
   const [ethereum, setEthereum] = useState(undefined);
   const [connectedAccount, setConnectedAccount] = useState(undefined);
-  const [keyboards, setKeyboards] = useState([])
-  const [newKeyboard, setNewKeyboard] = useState("")
+  const [keyboards, setKeyboards] = useState([]);
+  const [keyboardsLoading, setKeyboardsLoading] = useState(false);
 
   const contractAddress = '0xd2103Df8D40DE0fa16F0EFD3e1fb6c73dFc7E230';
   const contractABI = ABI.abi;
@@ -52,39 +52,23 @@ export default function Home() {
 
   const getKeyboards = async () => {
     if (ethereum && connectedAccount) {
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-      const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      const keyboards = await keyboardsContract.getKeyboards();
-      console.log('Retrieved keyboards...', keyboards)
-      setKeyboards(keyboards)
+      setKeyboardsLoading(true);
+      try {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
+  
+        const keyboards = await keyboardsContract.getKeyboards();
+        console.log('Retrieved keyboards...', keyboards)
+        
+        setKeyboards(keyboards)
+      } finally {
+        setKeyboardsLoading(false);
+      }
     }
   }
+
   useEffect(() => getKeyboards(), [connectedAccount])
-
-  // Submit new keyboard to contract
-  const submitCreate = async (e) => {
-    e.preventDefault();
-
-    if (!ethereum) {
-      console.error('Ethereum object is required to create a keyboard');
-      return;
-    }
-
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
-
-    const createTxn = await keyboardsContract.create(newKeyboard);
-    console.log('Create transaction started...', createTxn.hash);
-
-    await createTxn.wait();
-    console.log('Created keyboard!', createTxn.hash);
-
-    await getKeyboards();
-  }
-
 
   if (!ethereum) {
     return <p>Please install MetaMask to connect to this site. <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">Download MetaMask</a></p>
@@ -105,6 +89,15 @@ export default function Home() {
             )
           )}
         </div>
+      </div>
+    )
+  }
+
+  if (keyboardsLoading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PrimaryButton type="link" href="/create">Create a Keyboard!</PrimaryButton>
+        <p>Loading Keyboards...</p>
       </div>
     )
   }
