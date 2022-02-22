@@ -1,9 +1,9 @@
 import Router from "next/router";
 import { useState } from "react";
-import useMetaMaskAccount from '../components/meta-mask-account-provider';
 import PrimaryButton from "../components/primary-button";
 import Keyboard from "../components/keyboard";
 import getKeyboardsContract from "../utils/getKeyboardsContract";
+import { useMetaMaskAccount } from '../components/meta-mask-account-provider';
 
 export default function Create() {
 

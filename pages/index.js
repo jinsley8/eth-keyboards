@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import useMetaMaskAccount from '../components/meta-mask-account-provider';
 import PrimaryButton from "../components/primary-button";
 import TipButton from "../components/tip-button";
 import Keyboard from "../components/keyboard";
+import { useMetaMaskAccount } from '../components/meta-mask-account-provider';
 import addressesEqual from "../utils/addressesEqual";
 import getKeyboardsContract from "../utils/getKeyboardsContract";
 import { UserCircleIcon } from "@heroicons/react/solid";
