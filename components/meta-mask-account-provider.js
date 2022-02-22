@@ -5,10 +5,18 @@ const MetaMaskAccountContext = createContext();
 export default function MetaMaskAccountProvider({children}) {
   const [ethereum, setEthereum] = useState(undefined);
   const [connectedAccount, setConnectedAccount] = useState(undefined);
-
+  
   const setEthereumFromWindow = async () => {
     if(window.ethereum) {
-      setEthereum(window.ethereum);
+      // Reload if chain changes, see https://docs.metamask.io/guide/ethereum-provider.html#chainchanged
+      window.ethereum.on('chainChanged', (_chainId) => window.location.reload());
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+      const rinkebyId = '0x4'; // See https://docs.metamask.io/guide/ethereum-provider.html#chain-ids
+      if(chainId === rinkebyId) {
+        setEthereum(window.ethereum);
+      } else {
+        alert('Please use Rinkeby network');
+      }
     }
   }
   useEffect(() => setEthereumFromWindow(), [])
@@ -40,7 +48,7 @@ export default function MetaMaskAccountProvider({children}) {
     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     handleAccounts(accounts);
   };
-
+  
   const value = {ethereum, connectedAccount, connectAccount};
 
   return (
